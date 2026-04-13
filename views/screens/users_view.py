@@ -39,7 +39,7 @@ class UsersView(ctk.CTkFrame):
         # =========================
         ctk.CTkLabel(
             self.main_frame,
-            text="👤 Cadastro de Usuários",
+            text="Cadastro de Usuários",
             font=("Arial", 22, "bold"),
             text_color="white"
         ).pack(pady=20)
@@ -104,7 +104,7 @@ class UsersView(ctk.CTkFrame):
         # =========================
         ctk.CTkButton(
             self.main_frame,
-            text="💾 Salvar Usuário",
+            text="Salvar Usuário",
             width=300,
             height=40,
             fg_color="#2563eb",

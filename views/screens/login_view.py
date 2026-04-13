@@ -31,7 +31,7 @@ class LoginView(ctk.CTkFrame):
         # =========================
         ctk.CTkLabel(
             self.card,
-            text="🔐 ERP LOGIN",
+            text="ERP LOGIN",
             font=("Ariall", 24, "bold"),
             text_color="white"
         ).pack(pady=30)

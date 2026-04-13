@@ -25,20 +25,20 @@ class RolesClaimsView(ctk.CTkFrame):
 
         # FRAME DE DUAS COLUNAS
         self.columns_frame = ctk.CTkFrame(self, fg_color="#0f172a")
-        self.columns_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        self.columns_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
         # =========================
         # 📦 COLUNA 1: CADASTRO E LISTA DE ROLES
         # =========================
         self.left_frame = ctk.CTkFrame(self.columns_frame, fg_color="#0f172a", corner_radius=15)
-        self.left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20), pady=0)
+        self.left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), pady=0)
         self.columns_frame.grid_columnconfigure(0, weight=1, minsize=420)
         self.columns_frame.grid_columnconfigure(1, weight=2)
 
         # ---- Cadastro
         ctk.CTkLabel(
             self.left_frame,
-            text="👤 Cadastro de Perfis",
+            text="Cadastro de Perfis",
             font=("Arial", 22, "bold"),
             text_color="white"
         ).pack(pady=20)
@@ -65,19 +65,19 @@ class RolesClaimsView(ctk.CTkFrame):
         self.descricao.pack(pady=10)
 
         # Campo de status
-        self.add_status_entry = ctk.CTkComboBox(
-            entries_frame,
-            values=list(self.status_display_to_db.keys()),
-            width=300,
-            corner_radius=10
-        )
-        self.add_status_entry.set("Ativo")
-        self.add_status_entry.pack(pady=10)
+        #self.add_status_entry = ctk.CTkComboBox(
+        #    entries_frame,
+        #    values=list(self.status_display_to_db.keys()),
+        #    width=300,
+        #    corner_radius=10
+        #)
+        #self.add_status_entry.set("Ativo")
+        #self.add_status_entry.pack(pady=10)
 
         ctk.CTkButton(
             self.left_frame,
-            text="💾 Salvar Perfil",
-            width=300,
+            text="Salvar Perfil",
+            width=150,
             height=40,
             fg_color="#2563eb",
             hover_color="#1d4ed8",
@@ -86,8 +86,8 @@ class RolesClaimsView(ctk.CTkFrame):
 
         ctk.CTkButton(
             self.left_frame,
-            text="⬅ Voltar",
-            width=300,
+            text="Voltar",
+            width=150,
             height=35,
             fg_color="#334155",
             hover_color="#475569",
@@ -102,10 +102,9 @@ class RolesClaimsView(ctk.CTkFrame):
         self.message_label.pack(pady=10)
 
         # ---- Lista de Roles
-        ctk.CTkLabel(self.left_frame, text="Perfis cadastrados:", font=ctk.CTkFont(size=14, weight="bold")).pack(
-            anchor="w", pady=(10, 0), padx=10)
-        self.roles_container = ctk.CTkScrollableFrame(self.left_frame, fg_color="#1e293b", width=390, height=200)
-        self.roles_container.pack(fill="x", expand=False, padx=10, pady=10)
+        
+        self.roles_container = ctk.CTkScrollableFrame(self.left_frame, fg_color="#1e293b", width=450, height=353)
+        self.roles_container.pack(fill="x", expand=False, padx=5, pady=5)
 
         # =========================
         # 📦 COLUNA 2: CLAIMS
@@ -170,7 +169,7 @@ class RolesClaimsView(ctk.CTkFrame):
                     claim = columns_claims[col][row]
                     var = ctk.BooleanVar()
                     cb = ctk.CTkCheckBox(self.claims_grid, text=f"{claim.value}", variable=var)
-                    cb.grid(row=row_counter, column=col, sticky="w", padx=8, pady=2)
+                    cb.grid(row=row_counter, column=col, sticky="w", padx=6, pady=2)
                     self.claims_vars[claim.id] = var
                     self.claims_widgets[claim.id] = cb
             row_counter += 1
@@ -240,12 +239,12 @@ class RolesClaimsView(ctk.CTkFrame):
         label_name.configure(cursor="hand2")
 
 
-        ctk.CTkLabel(
-            row,
-            text=role.description,
-            text_color="#94a3b8",
-            width=100
-        ).pack(side="left")
+        #ctk.CTkLabel(
+        #    row,
+        #    text=role.description,
+        #    text_color="#94a3b8",
+        #    width=100
+        #).pack(side="left")
 
         ctk.CTkButton(
             row,
@@ -259,7 +258,7 @@ class RolesClaimsView(ctk.CTkFrame):
         ctk.CTkButton(
             row,
             text="Excluir",
-            width=80,
+            width=70,
             fg_color="#ef4444",
             hover_color="#b91c1c",
             command=lambda u=role.id: self.delete_role(u)

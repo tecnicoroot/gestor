@@ -50,7 +50,7 @@ class DashboardView(ctk.CTkFrame):
         # =========================
         ctk.CTkButton(
             self.sidebar,
-            text="🏠 Dashboard",
+            text="Dashboard",
             fg_color="transparent",
             text_color="white",
             hover_color="#334155",
@@ -60,7 +60,7 @@ class DashboardView(ctk.CTkFrame):
 
         ctk.CTkButton(
             self.sidebar,
-            text="👤 Usuários",
+            text="Usuários",
             fg_color="transparent",
             text_color="white",
             hover_color="#334155",
@@ -70,7 +70,7 @@ class DashboardView(ctk.CTkFrame):
 
         ctk.CTkButton(
             self.sidebar,
-            text="👤 Perfis",
+            text="Perfis",
             fg_color="transparent",
             text_color="white",
             hover_color="#334155",
