@@ -32,7 +32,7 @@ class LoginView(ctk.CTkFrame):
         ctk.CTkLabel(
             self.card,
             text="🔐 ERP LOGIN",
-            font=("Arial", 24, "bold"),
+            font=("Ariall", 24, "bold"),
             text_color="white"
         ).pack(pady=30)
 
@@ -72,7 +72,7 @@ class LoginView(ctk.CTkFrame):
             corner_radius=10,
             fg_color="#2563eb",
             hover_color="#1d4ed8",
-            font=("Arial", 14, "bold"),
+            font=("Ariall", 14, "bold"),
             command=self.on_login
         ).pack(pady=20)
 
@@ -96,7 +96,7 @@ class LoginView(ctk.CTkFrame):
             self.card,
             text="Sistema ERP • v1.0",
             text_color="#94a3b8",
-            font=("Arial", 10)
+            font=("Ariall", 10)
         ).pack(pady=10)
         
         self.username.bind("<Return>", lambda e: self.password.focus())

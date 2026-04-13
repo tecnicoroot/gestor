@@ -28,9 +28,9 @@ class RoleRepository:
         with SessionLocal() as session:
             return session.query(Claim).all()
 
-    def delete(self, role: Role):
+    def delete(self, role_id: int):
         with SessionLocal() as session:
-            role_db = session.query(Role).filter_by(id=role.id).first()
+            role_db = session.query(Role).filter_by(id=role_id).first()
             if role_db:
                 session.delete(role_db)
                 session.commit()
@@ -58,3 +58,11 @@ class RoleRepository:
             role.claims = claims
             session.commit()
             return True
+    
+    def get_claims_by_role(self, role_id):
+        with SessionLocal() as session:
+            role = session.query(Role).filter_by(id=role_id).first()
+            if not role:
+                return []
+
+            return role.claims

@@ -224,17 +224,21 @@ class RolesClaimsView(ctk.CTkFrame):
             row,
             text=role.id,
             text_color="white",
-            width=50,
+            
             anchor="w"
         ).pack(side="left", padx=10)
 
-        ctk.CTkLabel(
+        label_name = ctk.CTkLabel(
             row,
             text=role.name,
             text_color="white",
             width=100,
             anchor="w"
-        ).pack(side="left", padx=10)
+        )
+        label_name.pack(side="left", padx=10)
+        label_name.bind("<Button-1>", lambda event, r=role: self.on_label_click(r))
+        label_name.configure(cursor="hand2")
+
 
         ctk.CTkLabel(
             row,
@@ -258,7 +262,7 @@ class RolesClaimsView(ctk.CTkFrame):
             width=80,
             fg_color="#ef4444",
             hover_color="#b91c1c",
-            command=lambda u=role: self.delete_role(u)
+            command=lambda u=role.id: self.delete_role(u)
         ).pack(side="right", padx=5)
 
     def get_role_from_inputs(self):
@@ -275,8 +279,9 @@ class RolesClaimsView(ctk.CTkFrame):
         self.descricao.delete(0, "end")
         self.add_status_entry.set("Ativo")
 
-    def delete_role(self, role):
-        self.controller.delete_role(role.id)
+    def delete_role(self, role_id):
+        
+        self.controller.delete_role(role_id)
         self.load_roles()
 
     def edit_role(self, role):
@@ -299,3 +304,38 @@ class RolesClaimsView(ctk.CTkFrame):
         claim_ids = [claim_id for claim_id, var in self.claims_vars.items() if var.get()]
         self.controller.set_claims_for_role(role.id, claim_ids)
         messagebox.showinfo("Sucesso", f"Permissões salvas para {role.name}.")
+        # 🔥 limpa depois de salvar
+        self.clear_claims_selection()
+        self.selected_role_id = None
+
+    def get_claims_by_role(self, role_id):
+        return self.service.get_claims_by_role(role_id)
+    
+    def on_label_click(self, role):
+        self.selected_role_id = role.id
+        self.load_claims_for_role(role.id)
+
+        # resetar cores
+        for widget in self.roles_container.winfo_children():
+            widget.configure(fg_color="#1e293b")
+
+        # destacar selecionado
+        for widget in self.roles_container.winfo_children():
+            for child in widget.winfo_children():
+                if isinstance(child, ctk.CTkLabel) and child.cget("text") == role.name:
+                    widget.configure(fg_color="#334155")
+    
+    def load_claims_for_role(self, role_id):
+        # limpa tudo primeiro
+        self.clear_claims_selection()
+
+        role_claims = self.controller.get_claims_by_role(role_id)
+
+        # supondo que venha lista de objetos com .id
+        for claim in role_claims:
+            if claim.id in self.claims_vars:
+                self.claims_vars[claim.id].set(True)
+
+    def clear_claims_selection(self):
+        for var in self.claims_vars.values():
+            var.set(False)

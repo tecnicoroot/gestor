@@ -28,3 +28,6 @@ class RolesController:
 
     def set_claims_for_role(self, role_id, claim_ids):
         return self.service.set_claims_for_role(role_id, claim_ids)
+    
+    def get_claims_by_role(self, role_id):
+        return self.service.get_claims_by_role(role_id)
