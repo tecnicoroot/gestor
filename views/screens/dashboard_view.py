@@ -40,7 +40,7 @@ class DashboardView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self.sidebar,
-            text=f"Role: {user['role']}",
+            text=f"Role: ",
             text_color="#64748b",
             font=("Arial", 10)
         ).pack(pady=5)
@@ -66,6 +66,16 @@ class DashboardView(ctk.CTkFrame):
             hover_color="#334155",
             anchor="w",
             command=lambda: self.router.navigate("users")
+        ).pack(fill="x", pady=5, padx=10)
+
+        ctk.CTkButton(
+            self.sidebar,
+            text="👤 Perfis",
+            fg_color="transparent",
+            text_color="white",
+            hover_color="#334155",
+            anchor="w",
+            command=lambda: self.router.navigate("perfis")
         ).pack(fill="x", pady=5, padx=10)
 
         ctk.CTkButton(

@@ -3,9 +3,9 @@ class UserController:
         self.view = view
         self.service = container.user_service
 
-    def create_user(self, username, password, role):
+    def create_user(self, user):
         try:
-            self.service.create_user(username, password, role)
+            self.service.create_user(user.username, user.password, user.name, user.email)
             self.view.show_success("Usuário criado com sucesso!")
         except Exception as e:
             self.view.show_error(str(e))
@@ -13,8 +13,11 @@ class UserController:
     def get_all_users(self):
         return self.service.get_all()
 
-    def delete_user(self, user_id):
-        self.service.udelete(user_id)
+    def get_by_id(self, id):
+        return self.service.get_by_id(id)
 
-    def update_user(self, user_id, username, password, role):
-        self.service.update(user_id, username, password, role)
+    def delete_user(self, user_id):
+        self.service.delete_user(user_id)
+
+    def update_user(self, user ):
+        self.service.update_user(user)

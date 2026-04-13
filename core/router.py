@@ -8,6 +8,7 @@ class Router:
             "login": lambda: __import__("views.screens.login_view", fromlist=["LoginView"]).LoginView,
             "dashboard": lambda: __import__("views.screens.dashboard_view", fromlist=["DashboardView"]).DashboardView,
             "users": lambda: __import__("views.screens.users_view", fromlist=["UsersView"]).UsersView,
+            "perfis": lambda: __import__("views.screens.roles_claims_view", fromlist=["RolesClaimsView"]).RolesClaimsView,
         }
 
     def navigate(self, route):

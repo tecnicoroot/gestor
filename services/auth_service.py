@@ -1,3 +1,5 @@
+import bcrypt
+
 from database.repositories.user_repository import UserRepository
 from utils.security import verify_password
 
@@ -11,13 +13,13 @@ class AuthService:
         if not user:
             return None
 
-        user_id, usr, hashed, role = user
+        #user_id, usr, hashed, role = user
 
-        if verify_password(password, hashed):
+        if bcrypt.checkpw(password.encode(), user.password):
             return {
-                "id": user_id,
-                "username": usr,
-                "role": role
+                "id": user.id,
+                "username": user.username,
+
             }
 
         return None

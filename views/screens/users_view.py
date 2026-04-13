@@ -1,6 +1,7 @@
+import bcrypt
 import customtkinter as ctk
 from controllers.user_controller import UserController
-
+from models.models import User
 class UsersView(ctk.CTkFrame):
     def __init__(self, app, router, container):
         super().__init__(app)
@@ -13,8 +14,13 @@ class UsersView(ctk.CTkFrame):
 
         # 🌑 fundo padrão ERP
         self.configure(fg_color="#0f172a")
-        
 
+        self.status_display_to_db = {
+            "Ativo": "ACTIVE",
+            "Inativo": "INACTIVE",
+            "Suspenso": "SUSPENDED"
+        }
+        self.status_db_to_display = {v: k for k, v in self.status_display_to_db.items()}
         # =========================
         # 🧱 CONTAINER PRINCIPAL
         # =========================
@@ -39,39 +45,59 @@ class UsersView(ctk.CTkFrame):
         ).pack(pady=20)
 
         # =========================
-        # INPUT USERNAME
+        # CAMPOS DE ENTRADA (lado a lado)
         # =========================
+        entries_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        entries_frame.pack(pady=10)
+
+        # Primeira linha: Nome | E-mail
+        self.name = ctk.CTkEntry(
+            entries_frame,
+            placeholder_text="Nome",
+            width=300,
+            height=40,
+            corner_radius=10
+        )
+        self.name.grid(row=0, column=0, padx=5, pady=5)
+
+        self.email = ctk.CTkEntry(
+            entries_frame,
+            placeholder_text="E-mail",
+            width=300,
+            height=40,
+            corner_radius=10
+        )
+        self.email.grid(row=0, column=1, padx=5, pady=5)
+
+        # Segunda linha: Usuário | Senha
         self.username = ctk.CTkEntry(
-            self.main_frame,
+            entries_frame,
             placeholder_text="Usuário",
             width=300,
             height=40,
             corner_radius=10
         )
-        self.username.pack(pady=10)
+        self.username.grid(row=1, column=0, padx=5, pady=5)
 
-        # =========================
-        # INPUT PASSWORD
-        # =========================
         self.password = ctk.CTkEntry(
-            self.main_frame,
+            entries_frame,
             placeholder_text="Senha",
             show="*",
             width=300,
             height=40,
             corner_radius=10
         )
-        self.password.pack(pady=10)
+        self.password.grid(row=1, column=1, padx=5, pady=5)
 
-        # =========================
-        # ROLE SELECT
-        # =========================
-        self.role = ctk.CTkOptionMenu(
-            self.main_frame,
-            values=["user", "admin"],
-            width=300
+        # Status abaixo dos campos (centralizado)
+        self.add_status_entry = ctk.CTkComboBox(
+            entries_frame,
+            width=300,
+            height=40,
+            corner_radius=10,
+            values=["Ativo", "Inativo", "Suspenso"]
         )
-        self.role.pack(pady=10)
+        self.add_status_entry.grid(row=2, column=0, padx=5, pady=5)
 
         # =========================
         # BOTÕES
@@ -115,7 +141,7 @@ class UsersView(ctk.CTkFrame):
         )
         self.list_frame.place(relx=0.5, rely=0.75, anchor="center")
 
-        self.list_frame.configure(width=800, height=400)
+        self.list_frame.configure(width=1024, height=400)
         self.list_frame.pack_propagate(False)
 
         self.users_container = ctk.CTkScrollableFrame(
@@ -129,24 +155,19 @@ class UsersView(ctk.CTkFrame):
     # SALVAR USUÁRIO
     # =========================
     def save_user(self):
+        user = self.get_user_from_inputs()
         if hasattr(self, "editing_user_id"):
-            self.controller.update_user(
-                self.editing_user_id,
-                self.username.get(),
-                self.password.get(),
-                self.role.get()
-            )
+            user.id = self.editing_user_id
+            # Se o campo senha estiver vazio, mantenha a antiga
+            if not user.password:
+                user_old = self.controller.get_by_id(user.id)
+                user.password = user_old.password
+            self.controller.update_user(user)
             del self.editing_user_id
         else:
-            self.controller.create_user(
-                self.username.get(),
-                self.password.get(),
-                self.role.get()
-            )
+            self.controller.create_user(user)
 
-        self.username.delete(0, "end")
-        self.password.delete(0, "end")
-
+        self.limpa_inputs()
         self.load_users()
 
     # =========================
@@ -182,7 +203,7 @@ class UsersView(ctk.CTkFrame):
         
         ctk.CTkLabel(
             row,
-            text=user["id"],
+            text=user.id,
             text_color="white",
             width=150,
             anchor="w"
@@ -190,7 +211,7 @@ class UsersView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             row,
-            text=user["username"],
+            text=user.username,
             text_color="white",
             width=150,
             anchor="w"
@@ -198,7 +219,7 @@ class UsersView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             row,
-            text=user["role"],
+            text=user.email,
             text_color="#94a3b8",
             width=100
         ).pack(side="left")
@@ -222,16 +243,40 @@ class UsersView(ctk.CTkFrame):
             hover_color="#b91c1c",
             command=lambda u=user: self.delete_user(u)
         ).pack(side="right", padx=5)
-    
-    def delete_user(self, user):
-        self.controller.delete_user(user["id"])
-        self.load_users()
-    
-    def edit_user(self, user):
+
+    def get_user_from_inputs(self):
+        # Converte o valor do combo para o valor aceito pelo banco
+        status_display = self.add_status_entry.get()
+        status_db = self.status_display_to_db.get(status_display, "ACTIVE")
+        return User(
+            name=self.name.get(),
+            email=self.email.get(),
+            username=self.username.get(),
+            password=self.password.get(),
+            status=status_db
+        )
+
+    def limpa_inputs(self):
+        self.name.delete(0, "end")
+        self.email.delete(0, "end")
         self.username.delete(0, "end")
         self.password.delete(0, "end")
+        self.add_status_entry.set("")
 
-        self.username.insert(0, user["username"])
-        self.role.set(user["role"])
+    def delete_user(self, user):
+        self.controller.delete_user(user.id)
+        self.load_users()
 
-        self.editing_user_id = user["id"]
+    def edit_user(self, user):
+        self.limpa_inputs()
+
+        self.username.insert(0, user.username)
+        self.name.insert(0, user.name)
+        self.email.insert(0, user.email)
+        self.password.insert(0, "")
+        status_db = user.status
+        status_db_key = status_db.name if hasattr(status_db, "name") else str(status_db)
+        status_display = self.status_db_to_display.get(status_db_key, "Ativo")
+        self.add_status_entry.set(status_display)
+
+        self.editing_user_id = user.id

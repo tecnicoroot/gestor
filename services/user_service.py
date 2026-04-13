@@ -8,18 +8,16 @@ class UserService:
     # =========================
     # CREATE
     # =========================
-    def create_user(self, username, password, role="user"):
-        if not username or not password:
+    def create_user(self, user):
+        if not user.username or not user.password:
             raise ValueError("Usuário e senha são obrigatórios")
 
-        if self.repo.get_by_username(username):
+        if self.repo.find_by_username(user.username):
             raise ValueError("Usuário já existe")
 
 
         return self.repo.create(
-            username,
-            hash_password(password),
-            role
+            user
         )
 
     # =========================
@@ -32,25 +30,21 @@ class UserService:
     # READ (BY ID)
     # =========================
     def get_by_id(self, user_id):
-        return self.repo.get_by_id(user_id)
+        return self.repo.find_by_id(user_id)
 
     # =========================
     # UPDATE
     # =========================
-    def update_user(self, user_id, username, password, role):
-        if not username:
+    def update_user(self, user):
+        if not user.username:
             raise ValueError("Usuário é obrigatório")
 
-        data = {
-            "username": username,
-            "role": role
-        }
-
         # só atualiza senha se foi informada
-        if password:
-            data["password"] = hash_password(password)
+        if  user.password:
 
-        return self.repo.update(user_id, data)
+            user.password = hash_password(user.password)
+
+        return self.repo.update(user)
 
     # =========================
     # DELETE

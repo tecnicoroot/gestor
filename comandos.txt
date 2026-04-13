@@ -1,0 +1,79 @@
+Comandos do Alembic:
+
+alembic revision --autogenerate -m "mensagem": Cria um novo script de migração, detectando automaticamente as alterações no esquema do banco de dados em relação aos modelos SQLAlchemy. 
+alembic upgrade head: Aplica todas as migrações não aplicadas ao banco de dados. 
+alembic downgrade -1: Reverte a última migração aplicada. 
+alembic downgrade base: Reverte todas as migrações, voltando ao estado inicial. 
+alembic history: Exibe o histórico de migrações, mostrando quais foram aplicadas e suas versões. 
+alembic current: Mostra a versão atual do banco de dados. 
+alembic show <revision_id>: Mostra detalhes sobre uma migração específica, identificada pelo seu ID. 
+alembic stamp <revision_id>: Define a versão do banco de dados para uma migração específica, sem executar as operações de atualização ou downgrade, segundo a documentação do Alembic. 
+alembic init: Cria a estrutura básica de um projeto Alembic, incluindo os arquivos de configuração e diretórios de migração. 
+
+alembic revision --autogenerate -m "Add roles and claims"
+
+
+Criar roles, claims e associar claims às roles
+Criar usuários, associar roles aos usuários
+Consultar claims de um usuário (verificar autorização)
+1. Criando Roles e Claims e Associando
+# Criando claims
+claim_view = Claim(type="permission", value="view_dashboard")
+claim_edit = Claim(type="permission", value="edit_user")
+
+# Criando roles
+admin_role = Role(name="admin", description="Administrador do sistema")
+user_role = Role(name="user", description="Usuário comum")
+
+# Associando claims aos roles
+admin_role.claims.extend([claim_view, claim_edit])
+user_role.claims.append(claim_view)
+
+# Adicionando ao banco (supondo que você já tem uma session)
+session.add_all([claim_view, claim_edit, admin_role, user_role])
+session.commit()
+
+2. Criando Usuário e Associando Role
+# Criando um usuário
+from werkzeug.security import generate_password_hash
+
+user1 = User(
+    name="João Silva",
+    email="joao@example.com",
+    username="joaosilva",
+    password=generate_password_hash("senha123").encode(),  # exemplo de hash
+    status=Status.ACTIVE
+)
+
+# Associando uma role ao usuário
+user1.roles.append(admin_role)
+
+session.add(user1)
+session.commit()
+
+3. Consultando Claims de um Usuário
+# Supondo que você já recuperou o usuário do banco:
+user = session.query(User).filter_by(username="joaosilva").first()
+
+# Listando todas as claims (via roles)
+claims = set()
+for role in user.roles:
+    for claim in role.claims:
+        claims.add((claim.type, claim.value))
+
+print("Claims do usuário:", claims)
+# Saída: Claims do usuário: {('permission', 'view_dashboard'), ('permission', 'edit_user')}
+
+4. Verificando Permissão
+def has_claim(user, claim_type, claim_value):
+    for role in user.roles:
+        for claim in role.claims:
+            if claim.type == claim_type and claim.value == claim_value:
+                return True
+    return False
+
+# Exemplo de uso:
+if has_claim(user, "permission", "edit_user"):
+    print("Usuário pode editar usuários!")
+else:
+    print("Acesso negado.")
