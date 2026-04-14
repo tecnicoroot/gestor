@@ -23,8 +23,11 @@ class UserService:
     # =========================
     # READ (ALL)
     # =========================
-    def get_all(self):
-        return self.repo.get_all()
+    def get_all_users(self):
+        return self.repo.get_all_user()
+
+    def get_all_roles(self):
+        return self.repo.get_all_roles()
 
     # =========================
     # READ (BY ID)
@@ -57,3 +60,9 @@ class UserService:
             raise ValueError("Você não pode deletar seu próprio usuário")
 
         return self.repo.delete(user_id)
+
+    def set_roles_for_user(self, user_id, role_ids):
+        return self.repo.set_roles_for_user(user_id, role_ids)
+
+    def get_roles_by_user(self, user_id):
+        return self.repo.get_roles_by_user(user_id)

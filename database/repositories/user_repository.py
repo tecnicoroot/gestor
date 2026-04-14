@@ -1,6 +1,6 @@
 from database.connection import SessionLocal
-from models.models import User
-
+from models.models import User, Role
+from sqlalchemy.orm import joinedload
 class UserRepository:
     # Cria um novo usuário a partir de uma instância de User
     def create(self, user: User):
@@ -14,7 +14,11 @@ class UserRepository:
     # Busca e retorna User pelo username
     def find_by_username(self, username: str) -> User | None:
         session = SessionLocal()
-        user = session.query(User).filter_by(username=username).first()
+        user = session.query(User)\
+            .options(
+                joinedload(User.roles).joinedload(Role.claims)
+            )\
+            .filter_by(username=username).first()
         session.close()
         return user
 
@@ -26,11 +30,13 @@ class UserRepository:
         return user
 
     # Retorna todos os usuários como lista de User
-    def get_all(self) -> list[User]:
-        session = SessionLocal()
-        users = session.query(User).all()
-        session.close()
-        return users
+    def get_all_user(self) -> list[User]:
+        with SessionLocal() as session:
+            return session.query(User).all()
+
+    def get_all_roles(self) -> list[Role]:
+        with SessionLocal() as session:
+            return session.query(Role).all()
 
     # Deleta um usuário a partir de um objeto User
     def delete(self, user: User):
@@ -60,3 +66,22 @@ class UserRepository:
         session.refresh(user_db)
         session.close()
         return user_db
+
+    def set_roles_for_user(self, user_id, role_ids):
+        with SessionLocal() as session:
+            user = session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return False
+
+            roles = session.query(Role).filter(Role.id.in_(role_ids)).all()
+            user.roles = roles
+            session.commit()
+            return True
+
+    def get_roles_by_user(self, user_id):
+        with SessionLocal() as session:
+            user = session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return []
+
+            return user.roles

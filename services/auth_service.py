@@ -16,10 +16,20 @@ class AuthService:
         #user_id, usr, hashed, role = user
 
         if bcrypt.checkpw(password.encode(), user.password):
-            return {
-                "id": user.id,
-                "username": user.username,
+            # Monta roles (nomes)
+            roles = [role.name for role in user.roles]
 
+            # Monta claims (type: value)
+            claims = []
+            for role in user.roles:
+                for claim in role.claims:
+                    claims.append({"type": claim.type, "value": claim.value, "role": role.name})
+
+            # Retorna um dicionário/dto pronto para alimentar o AppState
+            return {
+                "user": user,
+                "roles": roles,
+                "claims": claims
             }
 
         return None

@@ -11,7 +11,10 @@ class UserController:
             self.view.show_error(str(e))
     
     def get_all_users(self):
-        return self.service.get_all()
+        return self.service.get_all_users()
+
+    def get_all_roles(self):
+        return self.service.get_all_roles()
 
     def get_by_id(self, id):
         return self.service.get_by_id(id)
@@ -21,3 +24,12 @@ class UserController:
 
     def update_user(self, user ):
         self.service.update_user(user)
+
+    def get_all_roles(self):
+        return self.service.get_all_roles()
+
+    def set_roles_for_user(self, user_id, role_ids):
+        return self.service.set_roles_for_user(user_id, role_ids)
+
+    def get_roles_by_user(self, user_id):
+        return self.service.get_roles_by_user(user_id)

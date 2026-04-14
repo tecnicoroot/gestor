@@ -23,6 +23,8 @@ class DashboardView(ctk.CTkFrame):
         self.sidebar.pack(side="left", fill="y")
 
         user = self.container.state.user
+        user_obj = user['user']
+        #print("DASHBOARD: ", user)
 
         ctk.CTkLabel(
             self.sidebar,
@@ -33,7 +35,7 @@ class DashboardView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self.sidebar,
-            text=f"{user['username']}",
+            text=f"{user_obj.username}",
             text_color="#94a3b8",
             font=("Arial", 12)
         ).pack(pady=5)
