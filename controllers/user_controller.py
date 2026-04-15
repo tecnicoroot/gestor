@@ -5,7 +5,7 @@ class UserController:
 
     def create_user(self, user):
         try:
-            self.service.create_user(user.username, user.password, user.name, user.email)
+            self.service.create_user(user)
             self.view.show_success("Usuário criado com sucesso!")
         except Exception as e:
             self.view.show_error(str(e))

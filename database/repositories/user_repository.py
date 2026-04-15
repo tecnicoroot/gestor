@@ -1,3 +1,5 @@
+import bcrypt
+
 from database.connection import SessionLocal
 from models.models import User, Role
 from sqlalchemy.orm import joinedload
@@ -5,6 +7,9 @@ class UserRepository:
     # Cria um novo usuário a partir de uma instância de User
     def create(self, user: User):
         session = SessionLocal()
+        print(user.password)
+        user.password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+        print(user.password)
         session.add(user)
         session.commit()
         session.refresh(user)  # Para garantir ID atualizado etc.

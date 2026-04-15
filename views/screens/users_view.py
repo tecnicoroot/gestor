@@ -1,3 +1,5 @@
+from sys import maxsize
+
 import bcrypt
 import customtkinter as ctk
 import tkinter as tk
@@ -32,8 +34,8 @@ class UsersView(ctk.CTkFrame):
         # =========================
         self.left_frame = ctk.CTkFrame(self.columns_frame, fg_color="#0f172a", corner_radius=15)
         self.left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), pady=0)
-        self.columns_frame.grid_columnconfigure(0, weight=1, minsize=420)
-        self.columns_frame.grid_columnconfigure(1, weight=2)
+        self.columns_frame.grid_columnconfigure(0, weight=5)
+        self.columns_frame.grid_columnconfigure(1, weight=1)
         # =========================
         # 🧱 CONTAINER PRINCIPAL
         # =========================
@@ -163,7 +165,7 @@ class UsersView(ctk.CTkFrame):
         #)
         #self.users_container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.user_container = ctk.CTkScrollableFrame(self.left_frame, fg_color="#1e293b", width=450, height=353)
+        self.user_container = ctk.CTkScrollableFrame(self.left_frame, fg_color="#1e293b", height=320)
         self.user_container.pack(fill="x", expand=False, padx=5, pady=5)
 
         # =========================
@@ -171,13 +173,14 @@ class UsersView(ctk.CTkFrame):
         # =========================
         self.right_frame = ctk.CTkFrame(self.columns_frame, fg_color="#fff9c4")
         self.right_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
-
+        self.right_frame.grid_propagate(False)
+        self.right_frame.configure(width=100)
         ctk.CTkLabel(self.right_frame, text="Acessos Disponíveis",
                      font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(12, 4), anchor="center")
 
         self.labels_frame = ctk.CTkFrame(self.right_frame, fg_color="#fff9c4")
         self.labels_frame.pack(pady=(0, 8), anchor="w")
-        ctk.CTkFrame(self.right_frame, height=2, fg_color="#aee1ab").pack(fill="x", padx=5, pady=(0, 10))
+        ctk.CTkFrame(self.right_frame, height=2, fg_color="#aee1ab").pack(fill="x", padx=5, pady=5)
         label_width = 120
         for label_text in ["Perfis"]:
             ctk.CTkLabel(self.labels_frame, text=label_text, font=ctk.CTkFont(size=14, weight="bold"),
@@ -204,8 +207,6 @@ class UsersView(ctk.CTkFrame):
         self.selected_user_id = None
 
         self.load_roles()
-
-        self.limpa_inputs()
         self.load_users()
 
     # =========================
@@ -214,6 +215,7 @@ class UsersView(ctk.CTkFrame):
     def save_user(self):
         user = self.get_user_from_inputs()
         if hasattr(self, "editing_user_id"):
+            print("edit")
             user.id = self.editing_user_id
             # Se o campo senha estiver vazio, mantenha a antiga
             if not user.password:
@@ -222,8 +224,9 @@ class UsersView(ctk.CTkFrame):
             self.controller.update_user(user)
             del self.editing_user_id
         else:
+            print("create")
             self.controller.create_user(user)
-
+        self.limpa_inputs()
         self.load_users()
     
     def load_roles(self):
@@ -253,10 +256,6 @@ class UsersView(ctk.CTkFrame):
                     self.roles_vars[role.id] = var
                     self.roles_widgets[role.id] = cb
             row_counter += 1
-            if (row + 1) % checkboxes_per_group == 0 and (row + 1) < max_column_length:
-                sep = ctk.CTkFrame(self.roles_grid, height=2, fg_color="#000000")
-                sep.grid(row=row_counter, column=0, columnspan=columns, sticky="we", pady=4)
-                row_counter += 1
 
         self.roles_grid.update_idletasks()
         self.roles_canvas.config(scrollregion=self.roles_canvas.bbox("all"))
@@ -296,17 +295,20 @@ class UsersView(ctk.CTkFrame):
             row,
             text=user.id,
             text_color="white",
-            width=150,
+            width=50,
             anchor="w"
         ).pack(side="left", padx=10)
 
-        ctk.CTkLabel(
+        label_username = ctk.CTkLabel(
             row,
             text=user.username,
             text_color="white",
             width=150,
             anchor="w"
-        ).pack(side="left", padx=10)
+        )
+        label_username.pack(side="left", padx=10)
+        label_username.bind("<Button-1>", lambda event, u=user: self.on_label_click(u))
+        label_username.configure(cursor="hand2")
 
         ctk.CTkLabel(
             row,
@@ -373,11 +375,11 @@ class UsersView(ctk.CTkFrame):
         self.editing_user_id = user.id
 
     def save_roles(self):
-        if self.selected_role_id is None and self.roles:
+        if self.selected_user_id is None and self.roles:
             messagebox.showinfo("Atenção", "Selecione um perfil para salvar permissões.")
             return
 
-        role = next((r for r in self.roles if r.id == self.selected_role_id), None)
+        role = next((r for r in self.roles if r.id == self.selected_user_id), None)
         if not role:
             messagebox.showinfo("Atenção", "Perfil não encontrado.")
             return
@@ -387,14 +389,14 @@ class UsersView(ctk.CTkFrame):
         messagebox.showinfo("Sucesso", f"Permissões salvas para {role.name}.")
         # 🔥 limpa depois de salvar
         self.clear_roles_selection()
-        self.selected_role_id = None
+        self.selected_user_id = None
 
     def get_roles_by_role(self, role_id):
         return self.service.get_roles_by_role(role_id)
 
-    def on_label_click(self, role):
-        self.selected_role_id = role.id
-        self.load_roles_for_role(role.id)
+    def on_label_click(self, user):
+        self.selected_user_id = user.id
+        self.load_roles_for_user(user.id)
 
         # resetar cores
         for widget in self.user_container.winfo_children():
@@ -403,10 +405,10 @@ class UsersView(ctk.CTkFrame):
         # destacar selecionado
         for widget in self.user_container.winfo_children():
             for child in widget.winfo_children():
-                if isinstance(child, ctk.CTkLabel) and child.cget("text") == role.name:
+                if isinstance(child, ctk.CTkLabel) and child.cget("text") == user.name:
                     widget.configure(fg_color="#334155")
 
-    def load_roles_for_role(self, user_id):
+    def load_roles_for_user(self, user_id):
         # limpa tudo primeiro
         self.clear_roles_selection()
 
@@ -420,3 +422,4 @@ class UsersView(ctk.CTkFrame):
     def clear_roles_selection(self):
         for var in self.roles_vars.values():
             var.set(False)
+
