@@ -74,32 +74,6 @@ class RolesClaimsView(ctk.CTkFrame):
         #self.add_status_entry.set("Ativo")
         #self.add_status_entry.pack(pady=10)
 
-        ctk.CTkButton(
-            self.left_frame,
-            text="Salvar Perfil",
-            width=150,
-            height=40,
-            fg_color="#2563eb",
-            hover_color="#1d4ed8",
-            command=self.save_role
-        ).pack(pady=15)
-
-        ctk.CTkButton(
-            self.left_frame,
-            text="Voltar",
-            width=150,
-            height=35,
-            fg_color="#334155",
-            hover_color="#475569",
-            command=lambda: self.router.navigate("dashboard")
-        ).pack(pady=5)
-
-        self.message_label = ctk.CTkLabel(
-            self.left_frame,
-            text="",
-            text_color="#94a3b8"
-        )
-        self.message_label.pack(pady=10)
 
         # ---- Lista de Roles
         
@@ -134,7 +108,7 @@ class RolesClaimsView(ctk.CTkFrame):
         self.claims_grid = ctk.CTkFrame(self.claims_canvas, fg_color="#fff9c4")
         self.claims_canvas.create_window((0, 0), window=self.claims_grid, anchor="nw")
 
-        ctk.CTkButton(self.right_frame, text="Salvar Permissões", command=self.save_claims).pack(pady=12)
+
 
         # --- DADOS INTERNOS ---
         self.roles = []
@@ -246,23 +220,24 @@ class RolesClaimsView(ctk.CTkFrame):
         #    width=100
         #).pack(side="left")
 
-        ctk.CTkButton(
-            row,
-            text="Editar",
-            width=70,
-            fg_color="#eab308",
-            hover_color="#ca8a04",
-            command=lambda u=role: self.edit_role(u)
-        ).pack(side="right", padx=5)
-
-        ctk.CTkButton(
-            row,
-            text="Excluir",
-            width=70,
-            fg_color="#ef4444",
-            hover_color="#b91c1c",
-            command=lambda u=role.id: self.delete_role(u)
-        ).pack(side="right", padx=5)
+        if self.container.state.has_claim("update_role"):
+            ctk.CTkButton(
+                row,
+                text="Editar",
+                width=70,
+                fg_color="#eab308",
+                hover_color="#ca8a04",
+                command=lambda u=role: self.edit_role(u)
+            ).pack(side="right", padx=5)
+        if self.container.state.has_claim("delete_role"):
+            ctk.CTkButton(
+                row,
+                text="Excluir",
+                width=70,
+                fg_color="#ef4444",
+                hover_color="#b91c1c",
+                command=lambda u=role.id: self.delete_role(u)
+            ).pack(side="right", padx=5)
 
     def get_role_from_inputs(self):
         status_display = self.add_status_entry.get()
@@ -338,3 +313,51 @@ class RolesClaimsView(ctk.CTkFrame):
     def clear_claims_selection(self):
         for var in self.claims_vars.values():
             var.set(False)
+
+    def on_show(self):
+        self.refresh_permissions()
+
+    def refresh_permissions(self):
+        for widget in self.left_frame.pack_slaves():
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Salvar Permissões":
+                widget.destroy()
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Voltar":
+                widget.destroy()
+
+        print(self.container.state.claims)
+        if self.container.state.has_claim("create_role"):
+            ctk.CTkButton(
+                self.left_frame,
+                text="Salvar Perfil",
+                width=150,
+                height=40,
+                fg_color="#2563eb",
+                hover_color="#1d4ed8",
+                command=self.save_role
+            ).pack(pady=15)
+
+        ctk.CTkButton(
+            self.left_frame,
+            text="Voltar",
+            width=150,
+            height=35,
+            fg_color="#334155",
+            hover_color="#475569",
+            command=lambda: self.router.navigate("dashboard")
+        ).pack(pady=5)
+
+        self.message_label = ctk.CTkLabel(
+            self.left_frame,
+            text="",
+            text_color="#94a3b8"
+        )
+        self.message_label.pack(pady=10)
+
+        # Repita para outros botões se necessário
+        for widget in self.right_frame.pack_slaves():
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Salvar Permissões":
+                widget.destroy()
+        if self.container.state.has_claim("update_role"):
+            ctk.CTkButton(self.right_frame, text="Salvar Permissões", command=self.save_claims).pack(pady=12)
+
+        self.load_roles()

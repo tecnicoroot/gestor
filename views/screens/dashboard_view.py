@@ -28,9 +28,8 @@ class DashboardView(ctk.CTkFrame):
         )
         self.sidebar.pack(side="left", fill="y")
 
-        user = self.container.state.user
-        user_obj = user['user']
-        #print("DASHBOARD: ", user)
+
+
 
         ctk.CTkLabel(
             self.sidebar,
@@ -38,61 +37,6 @@ class DashboardView(ctk.CTkFrame):
             font=("Arial", 18, "bold"),
             text_color="white"
         ).pack(pady=20)
-
-        ctk.CTkLabel(
-            self.sidebar,
-            text=f"{user_obj.username}",
-            text_color="#94a3b8",
-            font=("Arial", 12)
-        ).pack(pady=5)
-
-        ctk.CTkLabel(
-            self.sidebar,
-            text=f"Role: ",
-            text_color="#64748b",
-            font=("Arial", 10)
-        ).pack(pady=5)
-
-        # =========================
-        # BOTÕES MENU
-        # =========================
-        ctk.CTkButton(
-            self.sidebar,
-            text="Dashboard",
-            fg_color="transparent",
-            text_color="white",
-            hover_color="#334155",
-            anchor="w",
-            command=self.show_home
-        ).pack(fill="x", pady=5, padx=10)
-
-        ctk.CTkButton(
-            self.sidebar,
-            text="Usuários",
-            fg_color="transparent",
-            text_color="white",
-            hover_color="#334155",
-            anchor="w",
-            command=lambda: self.router.navigate("users")
-        ).pack(fill="x", pady=5, padx=10)
-
-        ctk.CTkButton(
-            self.sidebar,
-            text="Perfis",
-            fg_color="transparent",
-            text_color="white",
-            hover_color="#334155",
-            anchor="w",
-            command=lambda: self.router.navigate("perfis")
-        ).pack(fill="x", pady=5, padx=10)
-
-        ctk.CTkButton(
-            self.sidebar,
-            text="🚪 Sair",
-            fg_color="#ef4444",
-            hover_color="#b91c1c",
-            command=self.logout
-        ).pack(side="bottom", fill="x", padx=10, pady=20)
 
         # =========================
         # 📦 CONTEÚDO PRINCIPAL
@@ -104,7 +48,9 @@ class DashboardView(ctk.CTkFrame):
         self.content.pack(side="left", fill="both", expand=True)
 
         self.show_home()
-
+        print(self.container.state.user.name)
+        print(self.container.state.roles)
+        print(self.container.state.claims)
     # =========================
     # HOME DASHBOARD
     # =========================
@@ -184,6 +130,8 @@ class DashboardView(ctk.CTkFrame):
         tempo_label.pack()
         self.cards_ativos_labels.append({'label': tempo_label, 'start': inicio})
         self.update_tempo_execucao_ativos()
+
+
     # =========================
     # LIMPAR CONTEÚDO
     # =========================
@@ -195,7 +143,7 @@ class DashboardView(ctk.CTkFrame):
     # LOGOUT
     # =========================
     def logout(self):
-        self.container.state.user = None
+        self.container.state.clear()
         self.router.navigate("login")
 
     def carrega_robos_ativos(self):
@@ -241,3 +189,64 @@ class DashboardView(ctk.CTkFrame):
     def schedule_update_robos_ativos(self):
         # Agenda a atualização dos cards ativos a cada 10 segundos (10000 ms)
         self.after(10000, self.carrega_robos_ativos)
+
+    def on_show(self):
+        self.refresh()
+
+    def refresh(self):
+        for widget in self.sidebar.pack_slaves():
+            if isinstance(widget, ctk.CTkLabel) and widget.cget("text") != "ERP SYSTEM":
+                widget.destroy()
+        user = self.container.state.user
+        user_obj = user
+
+        ctk.CTkLabel(
+            self.sidebar,
+            text=f"{user_obj.username}",
+            text_color="#94a3b8",
+            font=("Arial", 12)
+        ).pack(pady=5)
+
+        for widget in self.sidebar.pack_slaves():
+            if isinstance(widget, ctk.CTkButton):
+                widget.destroy()
+        # =========================
+        # BOTÕES MENU
+        # =========================
+        ctk.CTkButton(
+            self.sidebar,
+            text="Dashboard",
+            fg_color="transparent",
+            text_color="white",
+            hover_color="#334155",
+            anchor="w",
+            command=self.show_home
+        ).pack(fill="x", pady=5, padx=10)
+
+        ctk.CTkButton(
+            self.sidebar,
+            text="Usuários",
+            fg_color="transparent",
+            text_color="white",
+            hover_color="#334155",
+            anchor="w",
+            command=lambda: self.router.navigate("users")
+        ).pack(fill="x", pady=5, padx=10)
+
+        ctk.CTkButton(
+            self.sidebar,
+            text="Perfis",
+            fg_color="transparent",
+            text_color="white",
+            hover_color="#334155",
+            anchor="w",
+            command=lambda: self.router.navigate("perfis")
+        ).pack(fill="x", pady=5, padx=10)
+
+        ctk.CTkButton(
+            self.sidebar,
+            text="Sair",
+            fg_color="#ef4444",
+            hover_color="#b91c1c",
+            command=self.logout
+        ).pack(side="bottom", fill="x", padx=10, pady=20)

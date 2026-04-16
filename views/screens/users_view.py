@@ -5,15 +5,18 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
 from controllers.user_controller import UserController
+from core.state import AppState
 from models.models import User
+
+
 class UsersView(ctk.CTkFrame):
     def __init__(self, app, router, container):
         super().__init__(app)
-
+        # app_state = AppState
         self.app = app
         self.router = router
         self.container = container
-
+        self.app_state = self.container.state
         self.controller = UserController(self, container)
 
         # 🌑 fundo padrão ERP
@@ -115,29 +118,6 @@ class UsersView(ctk.CTkFrame):
         self.add_status_entry.grid(row=2, column=0, padx=5, pady=5)
 
         # =========================
-        # BOTÕES
-        # =========================
-        ctk.CTkButton(
-            self.left_frame,
-            text="Salvar Usuário",
-            width=300,
-            height=40,
-            fg_color="#2563eb",
-            hover_color="#1d4ed8",
-            command=self.save_user
-        ).pack(pady=15)
-
-        ctk.CTkButton(
-            self.left_frame,
-            text="⬅ Voltar",
-            width=300,
-            height=35,
-            fg_color="#334155",
-            hover_color="#475569",
-            command=lambda: self.router.navigate("dashboard")
-        ).pack(pady=5)
-
-        # =========================
         # FEEDBACK
         # =========================
         self.message_label = ctk.CTkLabel(
@@ -149,21 +129,6 @@ class UsersView(ctk.CTkFrame):
 
         # =========================
         # 📋 LISTA DE USUÁRIOS
-        # =========================
-        #self.list_frame = ctk.CTkFrame(
-        #    self.left_frame,
-        #    fg_color="#0f172a"
-        #)
-        #self.list_frame.place(relx=0.5, rely=0.75, anchor="center")
-
-        ##self.left_frame.configure(width=1024, height=400)
-        ##self.list_frame.pack_propagate(False)
-
-        ##self.users_container = ctk.CTkScrollableFrame(
-        ##    self.list_frame,
-        ##    fg_color="transparent"
-        #)
-        #self.users_container.pack(fill="both", expand=True, padx=10, pady=10)
 
         self.user_container = ctk.CTkScrollableFrame(self.left_frame, fg_color="#1e293b", height=320)
         self.user_container.pack(fill="x", expand=False, padx=5, pady=5)
@@ -191,13 +156,11 @@ class UsersView(ctk.CTkFrame):
         self.roles_canvas = tk.Canvas(self.roles_outer_frame, bg="#fff9c4", highlightthickness=0)
         self.roles_canvas.pack(side="left", fill="both", expand=True)
         self.roles_scrollbar = tk.Scrollbar(self.roles_outer_frame, orient="vertical",
-                                             command=self.roles_canvas.yview)
+                                            command=self.roles_canvas.yview)
         self.roles_scrollbar.pack(side="right", fill="y")
         self.roles_canvas.configure(yscrollcommand=self.roles_scrollbar.set)
         self.roles_grid = ctk.CTkFrame(self.roles_canvas, fg_color="#fff9c4")
         self.roles_canvas.create_window((0, 0), window=self.roles_grid, anchor="nw")
-
-        ctk.CTkButton(self.right_frame, text="Salvar Permissões", command=self.save_roles).pack(pady=12)
 
         # --- DADOS INTERNOS ---
         self.users = []
@@ -207,7 +170,7 @@ class UsersView(ctk.CTkFrame):
         self.selected_user_id = None
 
         self.load_roles()
-        self.load_users()
+        # self.load_users()
 
     # =========================
     # SALVAR USUÁRIO
@@ -228,7 +191,7 @@ class UsersView(ctk.CTkFrame):
             self.controller.create_user(user)
         self.limpa_inputs()
         self.load_users()
-    
+
     def load_roles(self):
         # Limpa checkboxes antigos
         for widget in self.roles_grid.winfo_children():
@@ -259,7 +222,7 @@ class UsersView(ctk.CTkFrame):
 
         self.roles_grid.update_idletasks()
         self.roles_canvas.config(scrollregion=self.roles_canvas.bbox("all"))
-    
+
     # =========================
     # FEEDBACK UI
     # =========================
@@ -286,11 +249,11 @@ class UsersView(ctk.CTkFrame):
 
         for user in users:
             self.add_user_row(user)
-    
+
     def add_user_row(self, user):
         row = ctk.CTkFrame(self.user_container, fg_color="#1e293b")
         row.pack(fill="x", pady=5, padx=5)
-        
+
         ctk.CTkLabel(
             row,
             text=user.id,
@@ -317,25 +280,25 @@ class UsersView(ctk.CTkFrame):
             width=100
         ).pack(side="left")
 
-        # ✏️ EDITAR
-        ctk.CTkButton(
-            row,
-            text="Editar",
-            width=80,
-            fg_color="#eab308",
-            hover_color="#ca8a04",
-            command=lambda u=user: self.edit_user(u)
-        ).pack(side="right", padx=5)
+        if self.container.state.has_claim("update_user"):
+            ctk.CTkButton(
+                row,
+                text="Editar",
+                width=80,
+                fg_color="#eab308",
+                hover_color="#ca8a04",
+                command=lambda u=user: self.edit_user(u)
+            ).pack(side="right", padx=5)
 
-        # 🗑️ DELETAR
-        ctk.CTkButton(
-            row,
-            text="Excluir",
-            width=80,
-            fg_color="#ef4444",
-            hover_color="#b91c1c",
-            command=lambda u=user: self.delete_user(u)
-        ).pack(side="right", padx=5)
+        if self.container.state.has_claim("delete_user"):
+            ctk.CTkButton(
+                row,
+                text="Excluir",
+                width=80,
+                fg_color="#ef4444",
+                hover_color="#b91c1c",
+                command=lambda u=user: self.delete_user(u)
+            ).pack(side="right", padx=5)
 
     def get_user_from_inputs(self):
         # Converte o valor do combo para o valor aceito pelo banco
@@ -423,3 +386,49 @@ class UsersView(ctk.CTkFrame):
         for var in self.roles_vars.values():
             var.set(False)
 
+    def on_show(self):
+        self.refresh_permissions()
+
+    def refresh_permissions(self):
+        # Remonta ou atualiza os botões de acordo com as permissões atuais
+        # Recomendo apagar e criar de novo a área de botões
+        # ou, pelo menos, mostrar/ocultar conforme a permissão atual
+
+        # Exemplo simples para o botão "Salvar Usuário"
+        for widget in self.left_frame.pack_slaves():
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Salvar Usuário":
+                widget.destroy()
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Voltar":
+                widget.destroy()
+        if self.container.state.has_claim("create_user"):
+            ctk.CTkButton(
+                self.left_frame,
+                text="Salvar Usuário",
+                width=300,
+                height=40,
+                fg_color="#2563eb",
+                hover_color="#1d4ed8",
+                command=self.save_user
+            ).pack(pady=15)
+            # =========================
+            # BOTÕES
+            # =========================
+
+        ctk.CTkButton(
+            self.left_frame,
+            text="Voltar",
+            width=300,
+            height=35,
+            fg_color="#334155",
+            hover_color="#475569",
+            command=lambda: self.router.navigate("dashboard")
+        ).pack(pady=5)
+
+        # Repita para outros botões se necessário
+        for widget in self.right_frame.pack_slaves():
+            if isinstance(widget, ctk.CTkButton) and widget.cget("text") == "Salvar Perfis":
+                widget.destroy()
+        if self.container.state.has_claim("update_user"):
+            ctk.CTkButton(self.right_frame, text="Salvar Perfis", command=self.save_roles).pack(pady=12)
+
+        self.load_users()
